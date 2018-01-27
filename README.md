@@ -6,3 +6,5 @@ Description: The increasing era of automation in every field should not stay fro
 Features: 1.The key feature we are implementing is to predict the disease of based on age, gender, region and symptoms                 provided by the user.
 
 Added app.py (the main script working behind the bot) 
+
+Added utils.py ( the utility script for the bot )
