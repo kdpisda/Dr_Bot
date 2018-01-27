@@ -4,6 +4,20 @@ import requests
 from pymongo import MongoClient
 
 
+#all images we are gonna use
+IMG0 = ""
+IMG1 = ""
+IMG2 = ""
+IMG3 = ""
+IMG4 = ""
+IMG5 = ""
+IMG6 = ""
+IMG7 = ""
+IMG8 = ""
+IMG9 = ""
+
+
+
 # api.ai client 
 APIAI_ACCESS_TOKEN = "private"
 ai = apiai.ApiAI(APIAI_ACCESS_TOKEN)
@@ -16,6 +30,9 @@ symp=db.symptom_store
 
 #medico api endpoint
 hack36medico_endpoint = "private"
+
+#medicine api endpoint
+hack36medicine_endpoint = "private"
 
 # Available age categories
 age_categories = [('newborn', '1'),('infant', '2'),('younger child','3'),('older child','10'),('adolescent','4'),('young adult','7'),('adult below 40','5'),('adult below 50','8'),('adult below 65','9'),('senior','6')]
@@ -37,7 +54,9 @@ HELP_MSG = """
 Hey! I am your Dr. Bot.
 I can check your symptoms from over 6000 symptoms.
 Check me out. just type
-check my symptoms
+'check my symptoms' without quotes
+Find and buy medicines. just type
+'medicines' without quotes followed by medicine name
 :)
 """
 
@@ -76,6 +95,12 @@ def apiai_response(query, session_id):
 #function to deal with hack36medico
 def medico_api(params):
 	r = requests.get(hack36medico_endpoint,params=params)
+	return r.json()
+
+
+#function to deal with hack36medicine
+def medicine_api(params):
+	r=requests.get(hack36medicine_endpoint,params=params)
 	return r.json()
 
 
@@ -154,7 +179,12 @@ def fetch_reply(query, session_id):
 				element = {}
 				element['title'] = article['name']
 				element['item_url'] = article['link']
-				element['image_url'] = "https://img.cinemablend.com/cb/4/5/2/e/7/a/452e7aef468130d647c5f6fc041f8ebca8d5b1aa345b9aca5f2bc1e093591319.jpg"   #article['img']
+				if article['flag'] == 0:
+					element['subtitle'] = "Not serious"
+				elif article['flag'] == 1:
+					element['subtitle'] = "serious diseases"
+				element['image_url'] = "https://drive.google.com/file/d/1VF0vdGeDTbGuaCB-2uKX3mbzqvSPZXy_/view?usp=sharing"#article['img']
+				#element['default_action'] = {"webview_height_ratio":"tall"}
 				element['buttons'] = [{
 					"type":"web_url",
 					"title":"Read more",
@@ -168,6 +198,54 @@ def fetch_reply(query, session_id):
 			symp.update_one({'session_id':str(session_id)},{"$set":data})
 			print("data updated with flag one")
 
+
+		#for the medicine
+		elif arr[0] == "medicines":
+			reply['type'] = 'show_disease_processing'
+			print(arr[1])
+			temp=symp.find_one({'session_id':str(session_id)})
+			print("came back from mongoDB")
+			if temp['flag2'] == '1':
+				reply['type'] = 'show_disease_processed'
+				reply['data'] = ''
+				return reply
+			print("going to 1mg")
+			params={
+			'medicine_name':arr[1]
+			}
+
+
+
+			final_diseases=medicine_api(params)
+			print("came from 1mg")
+			final_list = []
+
+			##count = 0
+			for article in final_diseases:
+				#if count > 9:
+					#break
+				#count += 1
+				element = {}
+				element['title'] = article['name']
+				element['item_url'] = article['link']
+				element['subtitle'] = "price : Rs" + article['price'] +'\n' + 'No. of Tablets : ' + article['tablets']
+				element['image_url'] = "https://drive.google.com/file/d/1VF0vdGeDTbGuaCB-2uKX3mbzqvSPZXy_/view?usp=sharing"#article['img']
+				#element['default_action'] = {"webview_height_ratio":"tall"}
+				element['buttons'] = [{
+					"type":"web_url",
+					"title":"Buy Now",
+					"url":article['link']
+				}]
+				final_list.append(element)
+
+			reply['data'] = final_list
+			print("reply generated")
+			data['flag2'] = '1'
+			symp.update_one({'session_id':str(session_id)},{"$set":data})
+			print("data updated with flag2 one")
+			print(final_list)
+
+			
 
 		else:
 			#pass the response in the small talk

@@ -111,15 +111,23 @@ def webhook():
 
 							#parse and send the required reply
 							if reply['type'] == 'age_msg':
+								data['flag2'] = '0'
+								symp.update_one({'session_id':str(sender_id)},{"$set":data})
 								bot.send_quickreply(sender_id, AGE_MSG, age_categories)
 
 							elif reply['type'] == 'sex_msg':
+								data['flag2'] = '0'
+								symp.update_one({'session_id':str(sender_id)},{"$set":data})
 								bot.send_quickreply(sender_id, SEX_MSG, sex_categories)
 
 							elif reply['type'] == 'region_msg':
+								data['flag2'] = '0'
+								symp.update_one({'session_id':str(sender_id)},{"$set":data})
 								bot.send_quickreply(sender_id, REGION_MSG, region_categories)
 
 							elif reply['type'] == 'symptom_msg':
+								data['flag2'] = '0'
+								symp.update_one({'session_id':str(sender_id)},{"$set":data})
 								bot.send_text_message(sender_id,SYM_MSG)
 
 
@@ -132,9 +140,13 @@ def webhook():
 								bot.send_text_message(sender_id,reply['data'])
 
 							elif reply['type'] == 'smalltalk':
+								data['flag2'] = '0'
+								symp.update_one({'session_id':str(sender_id)},{"$set":data})
 								bot.send_text_message(sender_id,reply['data'])
 
 							elif reply['type'] == 'none':
+								data['flag2'] = '0'
+								symp.update_one({'session_id':str(sender_id)},{"$set":data})
 								bot.send_button_message(sender_id, "Sorry, I didn't understand. :(", reply['data'])
 
 							else:
@@ -146,6 +158,8 @@ def webhook():
 						payload = messaging_event['postback']['payload']
 						if payload ==  'SHOW_HELP':
 							bot.send_text_message(sender_id, HELP_MSG)
+							data['flag2'] = '0'
+							symp.update_one({'session_id':str(sender_id)},{"$set":data})
 					
 
 
@@ -171,6 +185,7 @@ def set_persistent_menu():
 	ENDPOINT = "https://graph.facebook.com/v2.8/me/thread_settings?access_token=%s"%(FB_ACCESS_TOKEN)
 	r = requests.post(ENDPOINT, headers = headers, data = json.dumps(data))
 	print(r.content)
+	
 
 
 set_persistent_menu()
