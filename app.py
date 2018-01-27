@@ -4,8 +4,15 @@ import requests,json
 import os
 from utils import fetch_reply, age_categories, HELP_MSG, AGE_MSG, SEX_MSG, sex_categories, region_categories, REGION_MSG, SYM_MSG
 import time
+from pymongo import MongoClient
 
 app=Flask("Dr_Bot")
+
+#pymongo client for the database
+MONGODB_URI = "private" #every mongo db has a Universal resource identify URI
+client = MongoClient(MONGODB_URI)
+db = client.get_database("bot")
+symp=db.symptom_store
 
 
 #this the fb access token of your page
@@ -54,33 +61,48 @@ def webhook():
 
 							query=messaging_event['message']['text']
 
-
+							data={}
+							data['session_id'] = str(sender_id)
 							#for the debug purpose
 							#bot.send_text_message(sender_id,query)
 							#return "ok",200
 
 							if messaging_event['message'].get('quick_reply'):
 								#Handle quick reply here
+
 								print("came",end="\n")
 								payload = messaging_event['message']['quick_reply']['payload']
+
+								print("dasf"+payload)
 								#lets check weather the payload lie in which category
 								if payload in list(zip(*age_categories))[1]:
-									#store the age in mongoDB
+
+									data['age'] = str(payload)
 									query = "sex input"
 
 								#check the payload lie in sex category
 								elif payload in list(zip(*sex_categories))[1]:
-									#store the sex in mongoDB
+									data['sex'] = str(int(payload)-30)
 									query = "region input"
 
 								elif payload in list(zip(*region_categories))[1]:
-									#store the region in mongoDB
+									data['region'] = str(int(payload)-10)
 									query = "symptom input"
+
+
+								data['flag'] = '0'
+								#if data is any of the above then store it directly
+								tep=symp.find_one({"session_id":str(sender_id)})
+								if tep == None :
+									symp.insert_one(data)
+								else :
+									symp.update_one({"session_id":str(sender_id)},{"$set":data})
+								print(symp.find_one({"session_id":str(sender_id)}))
 
 
 							#bot.send_text_message(sender_id,"wait untill we are processsing your request")
 							#return "ok",200
-
+							#print(symp.find_one({"session_id":str(sender_id)}))
 
 							#bot.send_image_url(sender_id,"https://drive.google.com/file/d/1Q_hyF7yYT4OJWaO-wzBm5LtlCM64hZpi/view?usp=sharing")
 							#return "ok",200
@@ -101,10 +123,13 @@ def webhook():
 								bot.send_text_message(sender_id,SYM_MSG)
 
 
-							elif reply['type'] == 'show_disease':
+							elif reply['type'] == 'show_disease_processing':
 								bot.send_generic_message(sender_id,reply['data'])
 								print("reply sended")
 								print(reply['data'])
+
+							elif reply['type'] == 'show_disease_processed':
+								bot.send_text_message(sender_id,reply['data'])
 
 							elif reply['type'] == 'normal_msg':
 								bot.send_text_message(sender_id,reply['data'])
