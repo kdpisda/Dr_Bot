@@ -1,7 +1,12 @@
+import apiai
 import json
 import requests
 from pymongo import MongoClient
 
+
+# api.ai client 
+APIAI_ACCESS_TOKEN = "private"
+ai = apiai.ApiAI(APIAI_ACCESS_TOKEN)
 
 #pymongo client for the database
 MONGODB_URI = "private" #every mongo db has a Universal resource identify URI
@@ -10,7 +15,7 @@ db = client.get_database("bot")
 symp=db.symptom_store
 
 #medico api endpoint
-hack36medico_endpoint = "https://ae787d47.ngrok.io/isabel"
+hack36medico_endpoint = "private"
 
 # Available age categories
 age_categories = [('newborn', '1'),('infant', '2'),('younger child','3'),('older child','10'),('adolescent','4'),('young adult','7'),('adult below 40','5'),('adult below 50','8'),('adult below 65','9'),('senior','6')]
@@ -54,6 +59,19 @@ Awesome, now select your region from given below.
 Region is specified since some diseases are region specified
 :-D
 """
+
+#apiai response added
+def apiai_response(query, session_id):
+	"""
+	function to fetch api.ai response
+	"""
+	request = ai.text_request()
+	request.lang='en'
+	request.session_id=session_id
+	request.query = query
+	response = request.getresponse()
+	return json.loads(response.read().decode('utf8'))
+
 
 #function to deal with hack36medico
 def medico_api(params):
@@ -152,8 +170,22 @@ def fetch_reply(query, session_id):
 
 
 		else:
-			reply['type'] = 'normal_msg'
-			reply['data'] = 'hoga'
+			#pass the response in the small talk
+			response = apiai_response(query, session_id)
+
+			#if the answer is trained
+			if response['result']['action'].startswith('smalltalk'):
+				reply['type'] = 'smalltalk'
+				reply['data'] = response['result']['fulfillment']['speech']
+
+			#if the answer is not trained
+			else:
+				reply['type'] = 'none'
+				reply['data'] = [{"type":"postback",
+								  "payload": "SHOW_HELP",
+								  "title":"Click here for help!"}]
+
+
 
 	return reply
 

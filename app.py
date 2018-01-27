@@ -131,11 +131,24 @@ def webhook():
 							elif reply['type'] == 'show_disease_processed':
 								bot.send_text_message(sender_id,reply['data'])
 
-							elif reply['type'] == 'normal_msg':
+							elif reply['type'] == 'smalltalk':
 								bot.send_text_message(sender_id,reply['data'])
 
+							elif reply['type'] == 'none':
+								bot.send_button_message(sender_id, "Sorry, I didn't understand. :(", reply['data'])
+
 							else:
-								bot.send_text_message(sender_id,"mja aa rha h")				
+								bot.send_text_message(sender_id,"error")
+
+					#to handle the postback of help
+					elif messaging_event.get('postback'):
+					# HANDLE POSTBACKS HERE
+						payload = messaging_event['postback']['payload']
+						if payload ==  'SHOW_HELP':
+							bot.send_text_message(sender_id, HELP_MSG)
+					
+
+
 
 	return "ok",200
 
