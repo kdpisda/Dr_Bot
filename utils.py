@@ -1,8 +1,16 @@
 import json
 import requests
+from pymongo import MongoClient
 
 
-hack36medico_endpoint = "https://0b6b18b8.ngrok.io/isabel"
+#pymongo client for the database
+MONGODB_URI = "private" #every mongo db has a Universal resource identify URI
+client = MongoClient(MONGODB_URI)
+db = client.get_database("bot")
+symp=db.symptom_store
+
+#medico api endpoint
+hack36medico_endpoint = "https://ae787d47.ngrok.io/isabel"
 
 # Available age categories
 age_categories = [('newborn', '1'),('infant', '2'),('younger child','3'),('older child','10'),('adolescent','4'),('young adult','7'),('adult below 40','5'),('adult below 50','8'),('adult below 65','9'),('senior','6')]
@@ -60,7 +68,8 @@ def fetch_reply(query, session_id):
 	"""
 
 	reply={}
-
+	data={}
+	data['session_id']=str(session_id)
 	# initiate the symptoms process
 	if query == "check my symptoms":
 
@@ -90,19 +99,30 @@ def fetch_reply(query, session_id):
 		#handle /symptoms here
 		arr = query.split(' ',1)
 		if arr[0] == "symptoms":
-			reply['type'] = 'show_disease'
+			reply['type'] = 'show_disease_processing'
 			print(arr[1])
 			# now retrive the age,sex and region from mongoDB
 			#retrive age ,sex, region, from mongoDB
+			#reply['data'] = "please wait untill we process your request ;)"
+			#return reply
+
+			#check weather the flag is 1 or 0
+			#if 0 then process the query else return we are processing your query
+			temp=symp.find_one({'session_id':str(session_id)})
+
+			if temp['flag'] == '1':
+				reply['type'] = 'show_disease_processed'
+				reply['data'] = ''
+				return reply
+
 			params={
-			'age':1,
-			'sex':1,
-			'region':10,
+			'age':temp['age'],
+			'sex':temp['sex'],
+			'region':temp['region'],
 			'symptoms':arr[1]
 			}
 
-			#reply['data'] = "please wait untill we process your request ;)"
-			#return reply
+
 
 			final_diseases=medico_api(params)
 
@@ -126,6 +146,9 @@ def fetch_reply(query, session_id):
 
 			reply['data'] = final_list
 			print("reply generated")
+			data['flag'] = '1'
+			symp.update_one({'session_id':str(session_id)},{"$set":data})
+			print("data updated with flag one")
 
 
 		else:
