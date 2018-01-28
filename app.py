@@ -152,43 +152,13 @@ def webhook():
 							else:
 								bot.send_text_message(sender_id,"error")
 
-					#to handle the postback of help
-					elif messaging_event.get('postback'):
-					# HANDLE POSTBACKS HERE
-						payload = messaging_event['postback']['payload']
-						if payload ==  'SHOW_HELP':
-							bot.send_text_message(sender_id, HELP_MSG)
-							data['flag2'] = '0'
-							symp.update_one({'session_id':str(sender_id)},{"$set":data})
+					
 					
 
 
 
 	return "ok",200
 
-
-
-def set_persistent_menu():
-	headers = {
-		'Content-Type':'application/json'
-		}
-	data = {
-		"setting_type":"call_to_actions",
-		"thread_state" : "existing_thread",
-		"call_to_actions":[
-			{
-				"type":"postback",
-				"title":"Help",
-				"payload":"SHOW_HELP"
-			}]
-		}
-	ENDPOINT = "https://graph.facebook.com/v2.8/me/thread_settings?access_token=%s"%(FB_ACCESS_TOKEN)
-	r = requests.post(ENDPOINT, headers = headers, data = json.dumps(data))
-	print(r.content)
-	
-
-
-set_persistent_menu()
 
 if __name__=="__main__":
 	app.run(port=8002,use_reloader=True)

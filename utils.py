@@ -296,9 +296,7 @@ def fetch_reply(query, session_id):
 			#if the answer is not trained
 			else:
 				reply['type'] = 'none'
-				reply['data'] = [{"type":"postback",
-								  "payload": "SHOW_HELP",
-								  "title":"Click here for help!"}]
+				reply['data'] = 'none'
 
 
 
