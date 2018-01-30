@@ -3,7 +3,7 @@ import json
 import requests
 from pymongo import MongoClient
 
-
+#this is the startig
 #all images we are gonna use
 IMG10 = "https://thumb1.shutterstock.com/display_pic_with_logo/384598/609220520/stock-vector-young-caucasian-doctor-listening-to-chest-of-patient-with-stethoscope-adult-patient-visiting-609220520.jpg"
 IMG1 = "https://thumb9.shutterstock.com/display_pic_with_logo/764932/524745832/stock-vector-medicine-concept-with-doctor-and-patient-in-flat-style-isolated-on-white-background-doctor-524745832.jpg"
